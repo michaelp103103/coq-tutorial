@@ -409,69 +409,6 @@ Definition isred (c : color) : bool :=
     variable [p] in the definition of [monochrome].) *)
 
 (* ================================================================= *)
-(** ** Modules *)
-
-(** Coq provides a _module system_ to aid in organizing large
-    developments.  We won't need most of its features,
-    but one is useful: If we enclose a collection of declarations
-    between [Module X] and [End X] markers, then, in the remainder of
-    the file after the [End], these definitions are referred to by
-    names like [X.foo] instead of just [foo].  We will use this
-    feature to limit the scope of definitions, so that we are free to
-    reuse names. *)
-
-Module Playground.
-  Definition b : rgb := blue.
-End Playground.
-
-Definition b : bool := true.
-
-Check Playground.b : rgb.
-Check b : bool.
-
-(* ================================================================= *)
-(** ** Tuples *)
-
-Module TuplePlayground.
-
-(** A single constructor with multiple parameters can be used
-    to create a tuple type. As an example, consider representing
-    the four bits in a nybble (half a byte). We first define
-    a datatype [bit] that resembles [bool] (using the
-    constructors [B0] and [B1] for the two possible bit values)
-    and then define the datatype [nybble], which is essentially
-    a tuple of four bits. *)
-
-Inductive bit : Type :=
-  | B0
-  | B1.
-
-Inductive nybble : Type :=
-  | bits (b0 b1 b2 b3 : bit).
-
-Check (bits B1 B0 B1 B0)
-  : nybble.
-
-(** The [bits] constructor acts as a wrapper for its contents.
-    Unwrapping can be done by pattern-matching, as in the [all_zero]
-    function which tests a nybble to see if all its bits are [B0].  We
-    use underscore (_) as a _wildcard pattern_ to avoid inventing
-    variable names that will not be used. *)
-
-Definition all_zero (nb : nybble) : bool :=
-  match nb with
-  | (bits B0 B0 B0 B0) => true
-  | (bits _ _ _ _) => false
-  end.
-
-Compute (all_zero (bits B1 B0 B1 B0)).
-(* ===> false : bool *)
-Compute (all_zero (bits B0 B0 B0 B0)).
-(* ===> true : bool *)
-
-End TuplePlayground.
-
-(* ================================================================= *)
 (** ** Numbers *)
 
 (** We put this section in a module so that our own definition of
@@ -550,29 +487,7 @@ Inductive nat : Type :=
     no special meaning -- they are just two different marks that we
     can use to write down numbers (together with a rule that says any
     [nat] will be written as some string of [S] marks followed by an
-    [O]).  If we like, we can write essentially the same definition
-    this way: *)
-
-Inductive nat' : Type :=
-  | stop
-  | tick (foo : nat').
-
-(** The _interpretation_ of these marks comes from how we use them to
-    compute. *)
-
-(** We can do this by writing functions that pattern match on
-    representations of natural numbers just as we did above with
-    booleans and days -- for example, here is the predecessor
-    function: *)
-
-Definition pred (n : nat) : nat :=
-  match n with
-  | O => O
-  | S n' => n'
-  end.
-
-(** The second branch can be read: "if [n] has the form [S n']
-    for some [n'], then return [n']."  *)
+    [O]). *)
 
 (** The following [End] command closes the current module, so
     [nat] will refer back to the type from the standard library. *)
@@ -587,23 +502,6 @@ End NatPlayground.
 
 Check (S (S (S (S O)))).
 (* ===> 4 : nat *)
-
-Definition minustwo (n : nat) : nat :=
-  match n with
-  | O => O
-  | S O => O
-  | S (S n') => n'
-  end.
-
-Compute (minustwo 4).
-(* ===> 2 : nat *)
-
-(** The constructor [S] has the type [nat -> nat], just like functions
-    such as [pred] and [minustwo]: *)
-
-Check S        : nat -> nat.
-Check pred     : nat -> nat.
-Check minustwo : nat -> nat.
 
 (** These are all things that can be applied to a number to yield a
     number.  However, there is a fundamental difference between [S]
@@ -641,16 +539,7 @@ Fixpoint even (n:nat) : bool :=
 Definition odd (n:nat) : bool :=
   negb (even n).
 
-Example test_odd1:    odd 1 = true.
-Proof. simpl. reflexivity.  Qed.
-Example test_odd2:    odd 4 = false.
-Proof. simpl. reflexivity.  Qed.
-
-(** (You may notice if you step through these proofs that
-    [simpl] actually has no effect on the goal -- all of the work is
-    done by [reflexivity].  We'll discuss why that is shortly.)
-
-    Naturally, we can also define multi-argument functions by
+(** Naturally, we can also define multi-argument functions by
     recursion.  *)
 
 Module NatPlayground2.
@@ -706,35 +595,6 @@ Fixpoint minus (n m:nat) : nat :=
   end.
 
 End NatPlayground2.
-
-Fixpoint exp (base power : nat) : nat :=
-  match power with
-  | O => S O
-  | S p => mult base (exp base p)
-  end.
-
-(** **** Exercise: 1 star, standard (factorial)
-
-    Recall the standard mathematical factorial function:
-
-       factorial(0)  =  1
-       factorial(n)  =  n * factorial(n-1)     (if n>0)
-
-    Translate this into Coq.
-
-    Make sure you put a [:=] between the header we've given you and
-    your definition.  If you see an error like "The reference
-    factorial was not found in the current environment," it means
-    you've forgotten the [:=]. *)
-
-Fixpoint factorial (n:nat) : nat
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
-
-Example test_factorial1:          (factorial 3) = 6.
-(* FILL IN HERE *) Admitted.
-Example test_factorial2:          (factorial 5) = (mult 10 12).
-(* FILL IN HERE *) Admitted.
-(** [] *)
 
 (** Again, we can make numerical expressions easier to read and write
     by introducing notations for addition, multiplication, and
@@ -795,13 +655,6 @@ Fixpoint leb (n m : nat) : bool :=
       end
   end.
 
-Example test_leb1:                leb 2 2 = true.
-Proof. simpl. reflexivity.  Qed.
-Example test_leb2:                leb 2 4 = true.
-Proof. simpl. reflexivity.  Qed.
-Example test_leb3:                leb 4 2 = false.
-Proof. simpl. reflexivity.  Qed.
-
 (** We'll be using these (especially [eqb]) a lot, so let's give
     them infix notations. *)
 
@@ -831,12 +684,6 @@ Definition ltb (n m : nat) : bool
 
 Notation "x <? y" := (ltb x y) (at level 70) : nat_scope.
 
-Example test_ltb1:             (ltb 2 2) = false.
-(* FILL IN HERE *) Admitted.
-Example test_ltb2:             (ltb 2 4) = true.
-(* FILL IN HERE *) Admitted.
-Example test_ltb3:             (ltb 4 2) = false.
-(* FILL IN HERE *) Admitted.
 (** [] *)
 
 (* ################################################################# *)
@@ -879,7 +726,7 @@ Proof.
 
 Theorem plus_O_n' : forall n : nat, 0 + n = n.
 Proof.
-  intros n. reflexivity. Qed.
+  (* FILL IN HERE *) Admitted.
 
 (** Moreover, it will be useful to know that [reflexivity] does
     somewhat _more_ simplification than [simpl] does -- for example,
@@ -1151,9 +998,7 @@ Proof.
 Theorem negb_involutive : forall b : bool,
   negb (negb b) = b.
 Proof.
-  intros b. destruct b eqn:E.
-  - reflexivity.
-  - reflexivity.  Qed.
+  (* FILL IN HERE *) Admitted.
 
 (** Note that the [destruct] here has no [as] clause because
     none of the subcases of the [destruct] need to bind any variables,
@@ -1242,86 +1087,6 @@ Theorem andb_true_elim2 : forall b c : bool,
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
-
-(** Before closing the chapter, let's mention one final
-    convenience.  As you may have noticed, many proofs perform case
-    analysis on a variable right after introducing it:
-
-       intros x y. destruct y as [|y] eqn:E.
-
-    This pattern is so common that Coq provides a shorthand for it: we
-    can perform case analysis on a variable when introducing it by
-    using an intro pattern instead of a variable name. For instance,
-    here is a shorter proof of the [plus_1_neq_0] theorem
-    above.  (You'll also note one downside of this shorthand: we lose
-    the equation recording the assumption we are making in each
-    subgoal, which we previously got from the [eqn:E] annotation.) *)
-
-Theorem plus_1_neq_0' : forall n : nat,
-  (n + 1) =? 0 = false.
-Proof.
-  intros [|n].
-  - reflexivity.
-  - reflexivity.  Qed.
-
-(** If there are no constructor arguments that need names, we can just
-    write [[]] to get the case analysis. *)
-
-Theorem andb_commutative'' :
-  forall b c, andb b c = andb c b.
-Proof.
-  intros [] [].
-  - reflexivity.
-  - reflexivity.
-  - reflexivity.
-  - reflexivity.
-Qed.
-
-(** **** Exercise: 1 star, standard (zero_nbeq_plus_1) *)
-Theorem zero_nbeq_plus_1 : forall n : nat,
-  0 =? (n + 1) = false.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
-
-(* ================================================================= *)
-(** ** Fixpoints and Structural Recursion (Optional) *)
-
-(** Here is a copy of the definition of addition: *)
-
-Fixpoint plus' (n : nat) (m : nat) : nat :=
-  match n with
-  | O => m
-  | S n' => S (plus' n' m)
-  end.
-
-(** When Coq checks this definition, it notes that [plus'] is
-    "decreasing on 1st argument."  What this means is that we are
-    performing a _structural recursion_ over the argument [n] -- i.e.,
-    that we make recursive calls only on strictly smaller values of
-    [n].  This implies that all calls to [plus'] will eventually
-    terminate.  Coq demands that some argument of _every_ [Fixpoint]
-    definition is "decreasing."
-
-    This requirement is a fundamental feature of Coq's design: In
-    particular, it guarantees that every function that can be defined
-    in Coq will terminate on all inputs.  However, because Coq's
-    "decreasing analysis" is not very sophisticated, it is sometimes
-    necessary to write functions in slightly unnatural ways. *)
-
-(** **** Exercise: 2 stars, standard, optional (decreasing)
-
-    To get a concrete sense of this, find a way to write a sensible
-    [Fixpoint] definition (of a simple function on numbers, say) that
-    _does_ terminate on all inputs, but that Coq will reject because
-    of this restriction.  (If you choose to turn in this optional
-    exercise as part of a homework assignment, make sure you comment
-    out your solution so that it doesn't cause Coq to reject the whole
-    file!) *)
-
-(* FILL IN HERE
-
-    [] *)
 
 (* ################################################################# *)
 (** * More Exercises *)
